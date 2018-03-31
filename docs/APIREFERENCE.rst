@@ -12,7 +12,7 @@ Synopsis
 
 .. code:: python
 
-    get_state(entity = None, attribute: None)
+    get_state(entity=None, attribute=None, namespace=None)
 
 ``get_state()`` is used to query the state of any component within Home
 Assistant. State updates are continuously tracked so this call runs
@@ -58,33 +58,36 @@ The value ``all`` for attribute has special significance and will return
 the entire state dictionary for the specified entity rather than an
 individual attribute value.
 
+namespace
+'''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
 Examples
 ^^^^^^^^
 
 .. code:: python
 
-     Return state for the entire system
+    # Return state for the entire system
     state = self.get_state()
 
-     Return state for all switches in the system
+    # Return state for all switches in the system
     state = self.get_state("switch")
 
-     Return the state attribute for light.office_1
+    # Return the state attribute for light.office_1
     state = self.get_state("light.office_1")
 
-     Return the brightness attribute for light.office_1
-    state = self.get_state("light.office_1", "brightness")
+    # Return the brightness attribute for light.office_1
+    state = self.get_state("light.office_1", attribute="brightness")
 
      Return the entire state for light.office_1
-    state = self.get_state("light.office_1", "all")
+    state = self.get_state("light.office_1", attribute="all")
 
 set\_state()
 ~~~~~~~~~~~~
 
 ``set_state()`` will make a call back to Home Assistant and make changes
-to the internal state of Home Assistant. This is not something that you
-would usually want to do and the applications are limited however the
-call is included for completeness. Note that for instance, setting the
+to the internal state of Home Assistant. Note that for instance, setting the
 state of a light to ``on`` won't actually switch the device on, it will
 merely change the state of the device in Home Assistant so that it no
 longer reflects reality. In most cases, the state will be corrected the
@@ -131,6 +134,12 @@ e.g. ``state = "off"``. Note that any optional attributes such as colors
 for bulbs etc, need to reside in a dictionary called ``attributes``; see
 the example.
 
+namespace
+'''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
+
 Examples
 ^^^^^^^^
 
@@ -171,7 +180,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard State Callback format documented above.
+conform to the standard State Callback format documented `Here <APPGUIDE.html#state-callbacks>`__
 
 entity
 ''''''
@@ -229,6 +238,8 @@ with the values of ``entity``, ``attr``, ``old`` and ``new`` that were
 current at the time the actual event occured, since the assumption is
 that none of them have changed in the intervening period.
 
+if you use ``duration`` when listening for an entire device type rather than a specific entity, or for all state changes, you may get unpredictable results, so it is recommended that this parameter is only used in conjunction with the state of specific entities.
+
 immediate = (optional)
 ''''''''''''''''''''''
 
@@ -241,6 +252,19 @@ for instance you want the duration to be triggered immediately if a light is alr
 If ``immediate`` is in use, and ``new`` and ``duration`` are both set, AppDaemon will check if the entity
 is already set to the new state and if so it will start the clock immediately. In this case, old will be ignored
 and when the timer triggers, it's state will be set to None. If new or entity are not set, ``immediate`` will be ignored.
+
+oneshot = (optional)
+''''''''''''''''''''
+
+True or False
+
+If ``oneshot`` is true, the callback will be automatically cancelled after the first state change that results in a callback.
+
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter. The value ``global`` for namespace has special significance, and means that the callback will listen to state updates from any plugin.
+
 
 \*\*kwargs
 ''''''''''
@@ -378,7 +402,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard Scheduler Callback format documented above.
+conform to the standard Scheduler Callback format documented `Here <APPGUIDE.html#about-schedule-callbacks>`__.
 
 delay
 '''''
@@ -396,8 +420,8 @@ Examples
 
 .. code:: python
 
-    self.handle = self.run_in(self.run_in_c)
-    self.handle = self.run_in(self.run_in_c, title = "run_in5")
+    self.handle = self.run_in(self.run_in_c, 10)
+    self.handle = self.run_in(self.run_in_c, , 5, title = "run_in5")
 
 run\_once()
 ~~~~~~~~~~~
@@ -424,7 +448,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard Scheduler Callback format documented above.
+conform to the standard Scheduler Callback format documented `Here <APPGUIDE.html#about-schedule-callbacks>`__.
 
 time
 ''''
@@ -475,7 +499,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard Scheduler Callback format documented above.
+conform to the standard Scheduler Callback format documented `Here <APPGUIDE.html#about-schedule-callbacks>`__.
 
 datetime
 ''''''''
@@ -528,7 +552,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard Scheduler Callback format documented above.
+conform to the standard Scheduler Callback format documented `Here <APPGUIDE.html#about-schedule-callbacks>`__.
 
 start
 '''''
@@ -580,7 +604,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard Scheduler Callback format documented above.
+conform to the standard Scheduler Callback format documented `Here <APPGUIDE.html#about-schedule-callbacks>`__.
 
 start
 '''''
@@ -634,7 +658,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard Scheduler Callback format documented above.
+conform to the standard Scheduler Callback format documented `Here <APPGUIDE.html#about-schedule-callbacks>`__.
 
 start
 '''''
@@ -687,7 +711,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard Scheduler Callback format documented above.
+conform to the standard Scheduler Callback format documented `Here <APPGUIDE.html#about-schedule-callbacks>`__.
 
 time
 ''''
@@ -799,7 +823,7 @@ Synopsis
 
 .. code:: python
 
-    self.handle = self.run_at_sunrise(callback, **kwargs)
+    self.handle = self.run_at_sunrise(callback, offset=0, **kwargs)
 
 Returns
 ^^^^^^^
@@ -813,7 +837,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard Scheduler Callback format documented above.
+conform to the standard Scheduler Callback format documented `Here <APPGUIDE.html#about-schedule-callbacks>`__.
 
 offset = 
 '''''''''
@@ -855,7 +879,7 @@ Synopsis
 
 .. code:: python
 
-    self.handle = self.run_at_sunset(callback, **kwargs)
+    self.handle = self.run_at_sunset(callback, offset=0, **kwargs)
 
 Returns
 ^^^^^^^
@@ -869,7 +893,7 @@ callback
 ''''''''
 
 Function to be invoked when the requested state change occurs. It must
-conform to the standard Scheduler Callback format documented above.
+conform to the standard Scheduler Callback format documented `Here <APPGUIDE.html#about-schedule-callbacks>`__.
 
 offset = 
 '''''''''
@@ -1009,7 +1033,7 @@ Call service is the basic way of calling a service within AppDaemon. It
 can call any service and provide any required parameters. Available
 services can be found using the developer tools in the UI. For listed
 services, the part before the first period is the domain, and the part
-after is the service name. For instance, ``light.turn_on`` has a domain
+after is the service name. For instance, ``light/turn_on`` has a domain
 of ``light`` and a service name of ``turn_on``.
 
 Synopsis
@@ -1030,7 +1054,14 @@ Parameters
 service
 '''''''
 
-The service name, e.g. ``light.turn_on``.
+The service name, e.g. ``light/turn_on``.
+
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
+
 
 \*\*kwargs
 ''''''''''
@@ -1047,7 +1078,7 @@ Examples
 
 .. code:: python
 
-    self.call_service("light/turn_on", entity_id = "light/office_lamp", color_name = "red")
+    self.call_service("light/turn_on", entity_id = "light.office_lamp", color_name = "red")
     self.call_service("notify/notify", title = "Hello", message = "Hello World")
 
 turn\_on()
@@ -1084,6 +1115,11 @@ entity\_id
 
 Fully qualified entity\_id of the thing to be turned on, e.g.
 ``light.office_lamp`` or ``scene.downstairs_on``
+
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
 
 \*\*kwargs
 ''''''''''
@@ -1128,6 +1164,12 @@ entity\_id
 Fully qualified entity\_id of the thing to be turned off, e.g.
 ``light.office_lamp`` or ``scene.downstairs_on``.
 
+namespace = (optional)
+'''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
+
 Examples
 ^^^^^^^^
 
@@ -1164,6 +1206,12 @@ entity\_id
 Fully qualified entity\_id of the thing to be toggled, e.g.
 ``light.office_lamp`` or ``scene.downstairs_on``.
 
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
+
 Examples
 ^^^^^^^^
 
@@ -1172,11 +1220,11 @@ Examples
     self.toggle("switch.patio_lights")
     self.toggle("light.office_1", color_name = "green")
 
-select\_value()
+set\_value()
 ~~~~~~~~~~~~~~~
 
-This is a convenience function for the ``input_slider.select_value``
-function. It is able to set the value of an input\_slider in Home
+This is a convenience function for the ``input_number.set_value``
+function. It is able to set the value of an input\_number in Home
 Assistant.
 
 Synopsis
@@ -1184,7 +1232,7 @@ Synopsis
 
 .. code:: python
 
-    self.select_value(entity_id, value)
+    self.set_value(entity_id, value)
 
 Returns
 ^^^^^^^
@@ -1198,19 +1246,25 @@ entity\_id
 ''''''''''
 
 Fully qualified entity\_id of the input\_slider to be changed, e.g.
-``input_slider.alarm_hour``.
+``input_number.alarm_hour``.
 
 value
 '''''
 
 The new value to set the input slider to.
 
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
+
 Examples
 ^^^^^^^^
 
 .. code:: python
 
-    self.select_value("input_slider.alarm_hour", 6)
+    self.set_value("input_number.alarm_hour", 6)
 
 select\_option()
 ~~~~~~~~~~~~~~~~
@@ -1244,6 +1298,12 @@ value
 '''''
 
 The new value to set the input slider to.
+
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
 
 Examples
 ^^^^^^^^
@@ -1279,22 +1339,28 @@ message
 
 Message to be sent to the notification service.
 
-title =
-'''''''
+title = (optional)
+''''''''''''''''''
 
 Title of the notification - optional.
 
-name =
-''''''
+name = (optional)
+'''''''''''''''''
 
 Name of the notification service - optional.
+
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
 
 Examples
 ^^^^^^^^
 
 .. code:: python
 
-    self.notify("", "Switching mode to Evening")
+    self.notify("Switching mode to Evening")
     self.notify("Switching mode to Evening", title = "Some Subject", name = "smtp")
 
 Events
@@ -1310,7 +1376,7 @@ Synopsis
 
 .. code:: python
 
-    handle = listen_event(function, event = None, **kwargs):
+    handle = listen_event(callback, event = None, **kwargs):
 
 Returns
 ^^^^^^^
@@ -1320,10 +1386,11 @@ A handle that can be used to cancel the callback.
 Parameters
 ^^^^^^^^^^
 
-function
+callback
 ''''''''
 
-The function to be called when the event is fired.
+Function to be invoked when the requested state change occurs. It must
+conform to the standard Event Callback format documented `Here <APPGUIDE.html#about-event-callbacks>`__.
 
 event
 '''''
@@ -1333,8 +1400,14 @@ event such as ``service_registered`` or an arbitrary custom event such
 as ``"MODE_CHANGE"``. If no event is specified, ``listen_event()`` will
 subscribe to all events.
 
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter. The value ``global`` for namespace has special significance, and means that the callback will lsiten to state updates from any plugin.
+
+
 \*\*kwargs (optional)
-'''''''''''''''''''''
+'''''''''''''''''''
 
 One or more keyword value pairs representing App specific parameters to
 supply to the callback. If the keywords match values within the event
@@ -1457,6 +1530,13 @@ Name of the event. Can be a standard Home Assistant event such as
 ``service_registered`` or an arbitrary custom event such as
 ``"MODE_CHANGE"``.
 
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
+
+
 \*\*kwargs
 ''''''''''
 
@@ -1486,6 +1566,16 @@ Synopsis
 
     tracker_list = get_trackers()
 
+Parameters
+^^^^^^^^^^
+
+namespace = (optional)
+'''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
+
+
 Returns
 ^^^^^^^
 
@@ -1511,6 +1601,14 @@ Synopsis
 .. code:: python
 
     tracker_list = get_tracker_details()
+
+Parameters
+^^^^^^^^^^
+
+namespace = (optional)
+'''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
 
 Returns
 ^^^^^^^
@@ -1561,6 +1659,12 @@ tracker\_id
 Fully qualified entity\_id of the device tracker to query, e.g.
 ``device_tracker.andrew``.
 
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
+
 Examples
 ^^^^^^^^
 
@@ -1588,6 +1692,15 @@ Returns
 ^^^^^^^
 
 Returns ``True`` if everyone is at home, ``False`` otherwise.
+
+Parameters
+^^^^^^^^^^
+
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
 
 Examples
 ^^^^^^^^
@@ -1617,6 +1730,15 @@ Returns
 
 Returns ``True`` if anyone is at home, ``False`` otherwise.
 
+Parameters
+^^^^^^^^^^
+
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
+
 Examples
 ^^^^^^^^
 
@@ -1643,6 +1765,15 @@ Returns
 ^^^^^^^
 
 Returns ``True`` if no one is home, ``False`` otherwise.
+
+Parameters
+^^^^^^^^^^
+
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
 
 Examples
 ^^^^^^^^
@@ -1961,6 +2092,11 @@ entity
 The fully qualified name of the entity to check for (including the
 device type)
 
+namespace = (optional)
+''''''''''''''''''''''
+
+Namespace to use for the call - see the section on namespaces for a detailed description. In most cases it is safe to ignore this parameter
+
 Examples
 ^^^^^^^^
 
@@ -2041,6 +2177,8 @@ Example
 Logfiles
 --------
 
+AppDaemon provides a couple of convenience functions for loggin to bith the main log and the app error log. These will automatically insert the app name for information.
+
 log()
 ~~~~~
 
@@ -2115,6 +2253,53 @@ Examples
 
     self.error("Some Warning string")
     self.error("Some Critical string", level = "CRITICAL")
+
+
+If you want to perform more elaborate logging or formattin, the underlying ``logger`` objects can be obtained:
+
+get_main_log()
+~~~~~~~
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    self.get_main_log()
+
+
+Returns
+^^^^^^^
+
+The underlying ``logger`` object used for the main log.
+
+.. code:: python
+
+    log = self.get_main_log()
+    log.log(50, "Log a critical error")
+
+
+get_error_log()
+~~~~~~~
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    self.get_error_log()
+
+
+Returns
+^^^^^^^
+
+The underlying ``logger`` object used for the error log.
+
+.. code:: python
+
+    error_log = self.get_error_log()
+    error_log.log(40, "Log an error")
+
 
 API
 ---
@@ -2456,11 +2641,11 @@ state
 '''''
 
 The state to be associated with the entity id. This is a dictionary and
-must contain the enirety of the state information, It will replace the
+must contain the entirety of the state information, It will replace the
 old state information, and calls like ``listen_state()`` should work
 correctly reporting the old and the new state information as long as you
 keep the dictionary looking similar to HA status updates, e.g. the main
-state in a state field, and any attibutes in an attributes
+state in a state field, and any attributes in an attributes
 sub-dictionary.
 
 Examples
@@ -2516,3 +2701,262 @@ Examples
 
     self.dash_navigate("/AlarmStatus", timeout=10)        # Switch to AlarmStatus Panel then return to current panel after 10 seconds
     self.dash_navigate("/Locks", timeout=10, ret="/Main") # Switch to Locks Panel then return to Main panel after 10 seconds
+
+Constraints
+-----------
+
+register_constraint()
+~~~~~~~~~~~~~~~~~~~~~
+
+Register a custom constraint
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    register_constraint(self, name)
+
+Returns
+^^^^^^^
+
+None.
+
+Parameters
+^^^^^^^^^^
+
+name
+''''''
+
+Name of the function to register for the constraint. Note: this is a string not a function reference.
+
+Examples
+^^^^^^^^
+
+.. code:: python
+
+        self.register_constraint("my_custom_constraint")
+
+
+
+deregister_constraint()
+~~~~~~~~~~~~~~~~~~~~~~~
+
+De-register a custom constraint.
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    deregister_constraint(self, name)
+
+Returns
+^^^^^^^
+
+None.
+
+Parameters
+^^^^^^^^^^
+
+name
+''''''
+
+Name of the function to register for the constraint. Note: this is a string not a function reference.
+
+Examples
+^^^^^^^^
+
+.. code:: python
+
+        self.deregister_constraint("my_custom_constraint")
+
+list_constraints()
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Get a list of all currently registered custom constraints. Note: this list will include any constraints registered by the plugin itself.
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    constraints = list_constraints()
+
+Returns
+^^^^^^^
+
+A list of all currently registered constraints.
+
+Examples
+^^^^^^^^
+
+.. code:: python
+
+        list = self.list_constraints()
+
+
+
+Namespace
+---------
+
+set\_namespace()
+~~~~~~~~~~~~~~~~
+
+Set a new namespace for the app to use from that point forward.
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    set_namespace(self, namespace)
+
+Returns
+^^^^^^^
+
+None.
+
+Parameters
+^^^^^^^^^^
+
+namespace
+'''''''''
+
+The value for the namespace to use moving forward.
+
+
+Examples
+^^^^^^^^
+
+.. code:: python
+
+    self.set_namespace("hass1")
+    self.set_namespace("default")
+
+Home Assistant Config
+---------------------
+
+get_hass_config()
+~~~~~~~~~~~~~~~~~
+
+Get Home Assistant configuration data such as latitude and longitude.
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    get_hass_config()
+
+Returns
+^^^^^^^
+
+A dictionary containing all the configuration information available from the Home Assistant ``/api/config`` endpoint.
+
+Examples
+^^^^^^^^
+
+.. code:: python
+
+    config = self.get_hass_config()
+    self.log("My current position is {}(Lat), {}(Long)".format(config["latitude"], config["longitude"]))
+
+Introspection
+-------------
+
+get_scheduler_entries()
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Get information on AppDaemon scheduler entries.
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    get_scheduler_entries()
+
+Returns
+^^^^^^^
+
+A dictionary containing all the information for entries in the AppDaemon scheduler
+
+Examples
+^^^^^^^^
+
+.. code:: python
+
+    schedule = self.get_scheduler_entries()
+
+get_callback_entries()
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Get information on AppDaemon callback entries.
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    get_callback_entries()
+
+Returns
+^^^^^^^
+
+A dictionary containing all the information for entries in the AppDaemon state and event callback table
+
+Examples
+^^^^^^^^
+
+.. code:: python
+
+    callbacks = self.get_callback_entries()
+
+get_thread_info()
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Get information on AppDaemon worker threads.
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    get_thread_info()
+
+Returns
+^^^^^^^
+
+A dictionary containing all the information for AppDaemon worker threads
+
+Examples
+^^^^^^^^
+
+.. code:: python
+
+    thread_info = self.get_thread_info()
+
+get_ad_version()
+~~~~~~~~~~~~~~~~
+
+Return the cuurent version of AppDaemon
+
+Synopsis
+^^^^^^^^
+
+.. code:: python
+
+    get_ad_version()
+
+Returns
+^^^^^^^
+
+A string containing the version number
+
+Examples
+^^^^^^^^
+
+.. code:: python
+
+    version = self.get_ad_version()
